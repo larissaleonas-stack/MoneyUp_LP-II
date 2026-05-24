@@ -1,0 +1,23 @@
+### GET
+GET http://localhost:3000/gastos
+
+### POST
+POST http://localhost:3000/gastos
+Content-Type: application/json
+
+{
+  "nome": "Água",
+  "valor": 80
+}
+
+### PUT
+PUT http://localhost:3000/gastos/1
+Content-Type: application/json
+
+{
+  "nome": "Água Atualizada",
+  "valor": 120
+}
+
+### DELETE
+DELETE http://localhost:3000/gastos/1

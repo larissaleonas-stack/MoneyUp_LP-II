@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Cadastro</title>
+
+  <style>
+    body{
+      background:#e8c9f1;
+      font-family:Arial;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:100vh;
+    }
+
+    .container{
+      background:white;
+      padding:30px;
+      border-radius:12px;
+      width:300px;
+    }
+
+    input{
+      width:100%;
+      padding:10px;
+      margin-bottom:10px;
+    }
+
+    button{
+      width:100%;
+      padding:10px;
+      background:#6a5acd;
+      color:white;
+      border:none;
+      border-radius:8px;
+      cursor:pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <h2>Adicionar gasto</h2>
+
+  <input id="nome" placeholder="Nome do gasto">
+
+  <input id="valor" placeholder="Valor">
+
+  <button id="salvarBtn">
+    Salvar
+  </button>
+
+</div>
+
+<script type="module" src="./js/cadastro.mjs"></script>
+
+</body>
+</html>

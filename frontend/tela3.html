@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Lista de Gastos</title>
+
+  <style>
+    body{
+      background:#e8c9f1;
+      font-family:Arial;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      min-height:100vh;
+    }
+
+    .container{
+      background:white;
+      padding:30px;
+      border-radius:12px;
+      width:350px;
+    }
+
+    .gasto{
+      background:#f3f3f3;
+      padding:10px;
+      border-radius:8px;
+      margin-bottom:10px;
+
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+
+    button{
+      background:red;
+      color:white;
+      border:none;
+      padding:5px 10px;
+      border-radius:5px;
+      cursor:pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <h2>💰 Seus Gastos</h2>
+
+  <div id="lista"></div>
+
+</div>
+
+<script type="module" src="./js/lista.mjs"></script>
+
+</body>
+</html>
