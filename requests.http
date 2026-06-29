@@ -1,0 +1,79 @@
+### GET gastos
+GET http://localhost:3000/gastos
+
+### GET usuarios
+GET http://localhost:3000/usuarios
+
+### GET categorias
+GET http://localhost:3000/categorias
+
+### GET formas-pagamento
+GET http://localhost:3000/formas-pagamento
+
+### POST criar gasto (válido)
+POST http://localhost:3000/gastos
+Content-Type: application/json
+
+# Substitua `categoriaId` e `formaPagamentoId` pelos IDs retornados de GET /categorias e GET /formas-pagamento.
+{
+  "nome": "Mercado",
+  "valor": 150,
+  "usuario": "Maria",
+  "categoriaId": 10,
+  "formaPagamentoId": 13
+}
+
+### POST criar gasto (inválido: campos faltando)
+POST http://localhost:3000/gastos
+Content-Type: application/json
+
+{
+  "nome": "",
+  "valor": ""
+}
+
+### PUT atualizar gasto
+PUT http://localhost:3000/gastos/1
+Content-Type: application/json
+
+{
+  "nome": "Mercado Atualizado",
+  "valor": 200
+}
+
+### DELETE gasto
+DELETE http://localhost:3000/gastos/1
+
+### Exemplos de fluxo completo
+### 1) Listar recursos
+GET http://localhost:3000/gastos
+GET http://localhost:3000/usuarios
+GET http://localhost:3000/categorias
+GET http://localhost:3000/formas-pagamento
+
+### 2) Criar um gasto e depois atualizar/excluir
+POST http://localhost:3000/gastos
+Content-Type: application/json
+
+{
+  "nome": "Almoço",
+  "valor": 45.5,
+  "usuario": "João",
+  "categoriaId": 1,
+  "formaPagamentoId": 2
+}
+
+### Após criação (pegar o `id` retornado), atualizar:
+PUT http://localhost:3000/gastos/{id}
+Content-Type: application/json
+
+{
+  "nome": "Almoço Executivo",
+  "valor": 55
+}
+
+### E por fim excluir
+DELETE http://localhost:3000/gastos/{id}
+
+### Observações
+# Use o REST Client do VSCode ou equivalente. Alguns endpoints retornam objetos relacionados (`usuario`, `categoria`, `formaPagamento`).

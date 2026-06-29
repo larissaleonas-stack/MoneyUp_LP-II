@@ -1,42 +1,60 @@
-async function carregarGastos(){
+const lista = document.getElementById("lista");
 
-  const resposta = await fetch("http://localhost:3000/gastos");
+if (!lista) {
+  throw new Error("Elemento de lista não foi encontrado");
+}
 
-  const dados = await resposta.json();
+const resposta = await fetch("http://localhost:3000/gastos");
 
-  const lista = document.getElementById("lista");
+if (!resposta.ok) {
+  lista.innerHTML = `<p class="empty-message">Não foi possível carregar os gastos.</p>`;
+  throw new Error("Erro ao buscar gastos");
+}
 
-  lista.innerHTML = "";
+const dados = await resposta.json();
 
-  dados.forEach(gasto => {
+if (!Array.isArray(dados) || dados.length === 0) {
+  lista.innerHTML = `<p class="empty-message">Nenhum gasto registrado ainda. Crie um novo gasto para começar.</p>`;
+} else {
+  dados.forEach((gasto) => {
+    const div = document.createElement("div");
+    div.className = "expense-card";
 
-    const item = document.createElement("div");
-
-    item.className = "gasto";
-
-    item.innerHTML = `
-      <span>
-        ${gasto.nome} - R$ ${gasto.valor}
-      </span>
-
-      <button onclick="excluir(${gasto.id})">
-        Excluir
-      </button>
+    div.innerHTML = `
+      <h3>${gasto.nome}</h3>
+      <p>Valor: R$ ${gasto.valor}</p>
+      <p>Usuário: ${gasto.usuario?.nome ?? "-"}</p>
+      <div class="badges-row">
+        <span class="badge">Categoria: ${gasto.categoria?.nome ?? "-"}</span>
+        <span class="badge">Pagamento: ${gasto.formaPagamento?.nome ?? "-"}</span>
+      </div>
+      <div class="expense-actions">
+        <button class="editar">Editar</button>
+        <button class="excluir">Excluir</button>
+      </div>
     `;
 
-    lista.appendChild(item);
+    const botaoEditar = div.querySelector(".editar");
+    const botaoExcluir = div.querySelector(".excluir");
+
+    botaoEditar?.addEventListener("click", () => {
+      window.location.href = `tela2.html?id=${gasto.id}`;
+    });
+
+    botaoExcluir?.addEventListener("click", async () => {
+      const confirmar = confirm("Deseja realmente excluir este gasto?");
+
+      if (!confirmar) {
+        return;
+      }
+
+      await fetch(`http://localhost:3000/gastos/${gasto.id}`, {
+        method: "DELETE",
+      });
+
+      location.reload();
+    });
+
+    lista.appendChild(div);
   });
 }
-
-window.excluir = async function(id){
-
-  await fetch(`http://localhost:3000/gastos/${id}`, {
-
-    method: "DELETE"
-
-  });
-
-  carregarGastos();
-}
-
-carregarGastos();

@@ -1,0 +1,29 @@
+erDiagram
+    User ||--o{ Expense : has
+    Category ||--o{ Expense : classifies
+    PaymentMethod ||--o{ Expense : uses
+
+    User {
+        int id PK
+        string name
+        string email
+    }
+
+    Category {
+        int id PK
+        string name
+    }
+
+    PaymentMethod {
+        int id PK
+        string name
+    }
+
+    Expense {
+        int id PK
+        string name
+        float value
+        int userId FK
+        int categoryId FK
+        int paymentMethodId FK
+    }

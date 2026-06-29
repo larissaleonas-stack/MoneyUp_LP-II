@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+      - name: Install dependencies
+        run: npm ci
+      - name: Apply migrations to CI DB
+        env:
+          DATABASE_URL: "file:./ci.db"
+        run: npx prisma migrate deploy
+      - name: Run tests
+        env:
+          DATABASE_URL: "file:./ci.db"
+        run: npm test --if-present
+      - name: Build
+        run: npm run build --if-present

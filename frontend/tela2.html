@@ -1,61 +1,66 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <title>Cadastro</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cadastro de Gastos</title>
+    <link rel="stylesheet" href="./css/styles.css" />
+  </head>
 
-  <style>
-    body{
-      background:#e8c9f1;
-      font-family:Arial;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      height:100vh;
-    }
+  <body>
+    <main class="page">
+      <section class="card form-card">
+        <div class="page-header">
+          <span class="brand-icon">📝</span>
+          <div>
+            <h1>Adicionar Gasto</h1>
+            <p class="subtitle">
+              Preencha os dados e registre seu gasto rapidamente.
+            </p>
+          </div>
+        </div>
 
-    .container{
-      background:white;
-      padding:30px;
-      border-radius:12px;
-      width:300px;
-    }
+        <div class="form-grid">
+          <div class="field">
+            <span>Nome do gasto</span>
+            <input
+              type="text"
+              id="nome"
+              placeholder="Ex: Mercado, Combustível"
+            />
+          </div>
+          <div class="field">
+            <span>Valor</span>
+            <input type="number" id="valor" placeholder="Ex: 150" />
+          </div>
+          <div class="field">
+            <span>Nome do usuário</span>
+            <input type="text" id="usuario" placeholder="Ex: Larissa" />
+          </div>
+          <div class="field">
+            <span>Categoria</span>
+            <div id="categoriaGroup" class="option-grid"></div>
+            <input type="hidden" id="categoria" />
+          </div>
+          <div class="field">
+            <span>Forma de pagamento</span>
+            <div id="formaGroup" class="option-grid"></div>
+            <input type="hidden" id="formaPagamento" />
+          </div>
+        </div>
 
-    input{
-      width:100%;
-      padding:10px;
-      margin-bottom:10px;
-    }
+        <div id="optionsStatus" class="options-status"></div>
 
-    button{
-      width:100%;
-      padding:10px;
-      background:#6a5acd;
-      color:white;
-      border:none;
-      border-radius:8px;
-      cursor:pointer;
-    }
-  </style>
-</head>
+        <div class="button-group">
+          <button id="salvarBtn" class="button primary full">Salvar</button>
+          <a href="tela3.html" class="button outline full">Ver Gastos</a>
+        </div>
 
-<body>
+        <div id="spinner"></div>
+        <div id="message"></div>
+      </section>
+    </main>
 
-<div class="container">
-
-  <h2>Adicionar gasto</h2>
-
-  <input id="nome" placeholder="Nome do gasto">
-
-  <input id="valor" placeholder="Valor">
-
-  <button id="salvarBtn">
-    Salvar
-  </button>
-
-</div>
-
-<script type="module" src="./js/cadastro.mjs"></script>
-
-</body>
+    <script type="module" src="./js/cadastro.mjs"></script>
+  </body>
 </html>
