@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - MoneyUp</title>
+    <link rel="stylesheet" href="./css/styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <section class="card form-card">
+        <h1>Entrar</h1>
+        <form id="loginForm">
+          <div class="field">
+            <label for="email">E-mail</label>
+            <input id="email" type="email" required />
+          </div>
+          <div class="field">
+            <label for="senha">Senha</label>
+            <input id="senha" type="password" required />
+          </div>
+          <div id="error" class="error"></div>
+          <div class="button-group">
+            <button class="button primary">Entrar</button>
+            <a href="cadastro.html" class="button outline">Criar conta</a>
+          </div>
+        </form>
+      </section>
+    </main>
+    <script type="module">
+      import { login } from "./js/auth.mjs";
+      const form = document.getElementById("loginForm");
+      const email = document.getElementById("email");
+      const senha = document.getElementById("senha");
+      const error = document.getElementById("error");
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        error.textContent = "";
+        try {
+          await login(email.value, senha.value);
+          window.location.href = "tela2.html";
+        } catch (err) {
+          error.textContent = err?.message || JSON.stringify(err);
+        }
+      });
+    </script>
+  </body>
+</html>

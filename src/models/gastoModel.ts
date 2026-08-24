@@ -9,7 +9,18 @@ const gastoModel = {
   async listar(): Promise<GastoResponse[]> {
     return await prisma.gasto.findMany({
       include: {
-        usuario: true,
+        usuario: { select: { id: true, nome: true, email: true } },
+        categoria: true,
+        formaPagamento: true,
+      },
+    });
+  },
+
+  async findById(id: number): Promise<GastoResponse | null> {
+    return prisma.gasto.findUnique({
+      where: { id },
+      include: {
+        usuario: { select: { id: true, nome: true, email: true } },
         categoria: true,
         formaPagamento: true,
       },
@@ -17,30 +28,18 @@ const gastoModel = {
   },
 
   async criar(data: GastoCreateInput): Promise<GastoResponse> {
-    let usuarioExistente = await prisma.usuario.findFirst({
-      where: {
-        nome: data.usuario,
-      },
-    });
-
-    if (!usuarioExistente) {
-      usuarioExistente = await prisma.usuario.create({
-        data: {
-          nome: data.usuario,
-        },
-      });
-    }
+    if (!data.usuarioId) throw new Error("Authenticated user is required");
 
     return await prisma.gasto.create({
       data: {
         nome: data.nome,
         valor: data.valor,
-        usuarioId: usuarioExistente.id,
+        usuarioId: data.usuarioId,
         categoriaId: data.categoriaId,
         formaPagamentoId: data.formaPagamentoId,
       },
       include: {
-        usuario: true,
+        usuario: { select: { id: true, nome: true, email: true } },
         categoria: true,
         formaPagamento: true,
       },
@@ -55,7 +54,7 @@ const gastoModel = {
         valor: data.valor,
       },
       include: {
-        usuario: true,
+        usuario: { select: { id: true, nome: true, email: true } },
         categoria: true,
         formaPagamento: true,
       },

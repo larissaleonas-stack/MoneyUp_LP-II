@@ -4,18 +4,24 @@ import fs from "fs";
 import { execSync } from "child_process";
 
 // Use test database and apply migrations before importing app
-process.env.DATABASE_URL = process.env.DATABASE_URL || "file:./test.db";
+process.env.DATABASE_URL = "file:./test.db";
 try {
-  if (fs.existsSync("test.db")) fs.unlinkSync("test.db");
+  if (fs.existsSync("prisma/test.db")) fs.unlinkSync("prisma/test.db");
 } catch (e) {
   // ignore
 }
 
-// Apply migrations to the test DB
+// The legacy migration history predates the required auth fields, so sync the
+// disposable test database directly from the current Prisma schema.
 try {
-  execSync("npx prisma migrate deploy", { stdio: "ignore" });
+  execSync(
+    "npx prisma db push --schema prisma/schema.prisma --accept-data-loss",
+    {
+      stdio: "ignore",
+    },
+  );
 } catch (e) {
-  // If migrations fail, tests may still run if schema is present
+  throw e;
 }
 
 const { default: prisma } = await import("../src/database/prisma.js");
@@ -24,8 +30,20 @@ const { default: app } = await import("../src/app.js");
 let categoriaId: number;
 let formaPagamentoId: number;
 let createdId: number | null = null;
+let authorization = "";
 
 beforeAll(async () => {
+  const email = `teste-${Date.now()}@example.com`;
+  const register = await request(app)
+    .post("/auth/register")
+    .send({ nome: "Teste User", email, senha: "SenhaSegura123" });
+  expect(register.status).toBe(201);
+  const login = await request(app)
+    .post("/auth/login")
+    .send({ email, senha: "SenhaSegura123" });
+  expect(login.status).toBe(200);
+  authorization = `Bearer ${login.body.token}`;
+
   const cat = await prisma.categoria.create({
     data: { nome: "TesteCategoria" },
   });
@@ -67,7 +85,10 @@ describe("Gastos API (integração)", () => {
       formaPagamentoId,
     };
 
-    const res = await request(app).post("/gastos").send(payload);
+    const res = await request(app)
+      .post("/gastos")
+      .set("Authorization", authorization)
+      .send(payload);
     expect([200, 201]).toContain(res.status);
     expect(res.body).toBeDefined();
     if (res.body && res.body.id) createdId = res.body.id;
@@ -76,6 +97,7 @@ describe("Gastos API (integração)", () => {
   it("POST /gastos com payload inválido retorna 400", async () => {
     const res = await request(app)
       .post("/gastos")
+      .set("Authorization", authorization)
       .send({ nome: "", valor: "" });
     expect(res.status).toBe(400);
     expect(res.body).toBeDefined();
@@ -91,7 +113,10 @@ describe("Gastos API (integração)", () => {
       formaPagamentoId: 999999,
     };
 
-    const res = await request(app).post("/gastos").send(payload);
+    const res = await request(app)
+      .post("/gastos")
+      .set("Authorization", authorization)
+      .send(payload);
     expect(res.status).toBe(400);
     expect(res.body).toBeDefined();
     // our error handler maps Prisma P2003 to 400 with a code
@@ -104,6 +129,7 @@ describe("Gastos API (integração)", () => {
     if (!createdId) return;
     const res = await request(app)
       .put(`/gastos/${createdId}`)
+      .set("Authorization", authorization)
       .send({ nome: "Atualizado", valor: 20 });
     expect(res.status).toBe(200);
     expect(res.body.nome).toBe("Atualizado");
@@ -111,7 +137,9 @@ describe("Gastos API (integração)", () => {
 
   it("DELETE /gastos/:id remove um gasto (200)", async () => {
     if (!createdId) return;
-    const res = await request(app).delete(`/gastos/${createdId}`);
+    const res = await request(app)
+      .delete(`/gastos/${createdId}`)
+      .set("Authorization", authorization);
     expect(res.status).toBe(200);
   });
 });

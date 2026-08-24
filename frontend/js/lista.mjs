@@ -1,10 +1,12 @@
+import { authFetch, getUser } from "./auth.mjs";
+
 const lista = document.getElementById("lista");
 
 if (!lista) {
   throw new Error("Elemento de lista não foi encontrado");
 }
 
-const resposta = await fetch("http://localhost:3000/gastos");
+const resposta = await authFetch("http://localhost:3000/gastos");
 
 if (!resposta.ok) {
   lista.innerHTML = `<p class="empty-message">Não foi possível carregar os gastos.</p>`;
@@ -37,23 +39,28 @@ if (!Array.isArray(dados) || dados.length === 0) {
     const botaoEditar = div.querySelector(".editar");
     const botaoExcluir = div.querySelector(".excluir");
 
-    botaoEditar?.addEventListener("click", () => {
-      window.location.href = `tela2.html?id=${gasto.id}`;
-    });
-
-    botaoExcluir?.addEventListener("click", async () => {
-      const confirmar = confirm("Deseja realmente excluir este gasto?");
-
-      if (!confirmar) {
-        return;
-      }
-
-      await fetch(`http://localhost:3000/gastos/${gasto.id}`, {
-        method: "DELETE",
+    const currentUser = getUser();
+    // Only show edit/delete if user is authenticated and is the owner
+    if (!currentUser || currentUser.id !== gasto.usuario?.id) {
+      botaoEditar?.remove();
+      botaoExcluir?.remove();
+    } else {
+      botaoEditar?.addEventListener("click", () => {
+        window.location.href = `tela2.html?id=${gasto.id}`;
       });
 
-      location.reload();
-    });
+      botaoExcluir?.addEventListener("click", async () => {
+        const confirmar = confirm("Deseja realmente excluir este gasto?");
+
+        if (!confirmar) return;
+
+        await authFetch(`http://localhost:3000/gastos/${gasto.id}`, {
+          method: "DELETE",
+        });
+
+        location.reload();
+      });
+    }
 
     lista.appendChild(div);
   });

@@ -13,11 +13,7 @@
     "isolatedModules": true,
     "noEmitOnError": true,
     "outDir": "dist",
-    "rootDir": ".",
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"]
-    }
+    "rootDir": "."
   },
   "include": ["src/**/*.ts", "prisma/**/*.ts", "tests/**/*.ts"],
   "exclude": ["node_modules", "dist", "prisma/migrations"]

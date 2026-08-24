@@ -1,0 +1,32 @@
+Test run: 2026-08-23T23:30:19.159Z
+
+1) Register user A
+{"status":201,"body":"{\"id\":25,\"nome\":\"User A\",\"email\":\"userA_1787527819160@example.com\"}"}
+
+2) Register duplicate user A (expect 409)
+{"status":409,"body":"{\"error\":\"E-mail já cadastrado\"}"}
+
+3) Login invalid password (expect 401)
+{"status":401,"body":"{\"error\":\"Usuário ou senha inválidos\"}"}
+
+4) Login valid (expect 200)
+{"status":200,"body":"{\"token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjI1LCJlbWFpbCI6InVzZXJBXzE3ODc1Mjc4MTkxNjBAZXhhbXBsZS5jb20iLCJpYXQiOjE3ODc1Mjc4MTksImV4cCI6MTc4NzUzMTQxOX0.8c0nAsxBxjZWqHfddjzIMfSLSAUCu8XU0219LgFYwUk\",\"user\":{\"id\":25,\"nome\":\"User A\",\"email\":\"userA_1787527819160@example.com\"}}"}
+
+5) Access /me without token (expect 401)
+{"status":401,"body":"{\"error\":\"Token não fornecido\"}"}
+
+6) Create gasto without token (expect 401)
+{"status":401,"body":"{\"error\":\"Token não fornecido\"}"}
+
+7) Create gasto with tokenA (expect 201)
+{"status":201,"body":"{\"id\":34,\"nome\":\"Gasto A\",\"valor\":55,\"usuarioId\":25,\"categoriaId\":10,\"formaPagamentoId\":13,\"usuario\":{\"id\":25,\"nome\":\"User A\",\"email\":\"userA_1787527819160@example.com\"},\"categoria\":{\"id\":10,\"nome\":\"Alimentação\"},\"formaPagamento\":{\"id\":13,\"nome\":\"Dinheiro\"}}"}
+
+8) Register and login user B
+{"status":201,"body":"{\"id\":26,\"nome\":\"User B\",\"email\":\"userB_1787527819814@example.com\"}"}
+{"status":200,"body":"{\"token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjI2LCJlbWFpbCI6InVzZXJCXzE3ODc1Mjc4MTk4MTRAZXhhbXBsZS5jb20iLCJpYXQiOjE3ODc1Mjc4MjAsImV4cCI6MTc4NzUzMTQyMH0.GZ9v7Dq5Ast6SM7iz1ZTn9BMjtzD-E-o6euJoqFkRBo\",\"user\":{\"id\":26,\"nome\":\"User B\",\"email\":\"userB_1787527819814@example.com\"}}"}
+
+9) User B attempts to delete gasto created by A
+{"status":403,"body":"{\"error\":\"Não autorizado\"}"}
+
+10) User A attempts to delete gasto (cleanup)
+{"status":200,"body":"{\"mensagem\":\"Removido\"}"}

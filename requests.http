@@ -1,31 +1,35 @@
-### GET gastos
-GET http://localhost:3000/gastos
+### Base URL
+@baseUrl = http://localhost:3000
+
+### Variável do token atual
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjE2LCJlbWFpbCI6ImFsdW5vQGV4ZW1wbG8uY29tIiwiaWF0IjoxNzg3NTc3NzM0LCJleHAiOjE3ODc1ODEzMzR9.C-M9rpxsUolgOQsZm3FnUBEIEpXx6wYJhwOrrMfCazw
+GET {{baseUrl}}/gastos
 
 ### GET usuarios
-GET http://localhost:3000/usuarios
+GET {{baseUrl}}/usuarios
 
 ### GET categorias
-GET http://localhost:3000/categorias
+GET {{baseUrl}}/categorias
 
 ### GET formas-pagamento
-GET http://localhost:3000/formas-pagamento
+GET {{baseUrl}}/formas-pagamento
 
 ### POST criar gasto (válido)
-POST http://localhost:3000/gastos
+POST {{baseUrl}}/gastos
 Content-Type: application/json
+Authorization: Bearer {{token}}
 
-# Substitua `categoriaId` e `formaPagamentoId` pelos IDs retornados de GET /categorias e GET /formas-pagamento.
 {
   "nome": "Mercado",
   "valor": 150,
-  "usuario": "Maria",
-  "categoriaId": 10,
-  "formaPagamentoId": 13
+  "categoriaId": 1,
+  "formaPagamentoId": 1
 }
 
 ### POST criar gasto (inválido: campos faltando)
-POST http://localhost:3000/gastos
+POST {{baseUrl}}/gastos
 Content-Type: application/json
+Authorization: Bearer {{token}}
 
 {
   "nome": "",
@@ -33,8 +37,9 @@ Content-Type: application/json
 }
 
 ### PUT atualizar gasto
-PUT http://localhost:3000/gastos/1
+PUT {{baseUrl}}/gastos/1
 Content-Type: application/json
+Authorization: Bearer {{token}}
 
 {
   "nome": "Mercado Atualizado",
@@ -42,38 +47,42 @@ Content-Type: application/json
 }
 
 ### DELETE gasto
-DELETE http://localhost:3000/gastos/1
+DELETE {{baseUrl}}/gastos/1
+Authorization: Bearer {{token}}
 
-### Exemplos de fluxo completo
-### 1) Listar recursos
-GET http://localhost:3000/gastos
-GET http://localhost:3000/usuarios
-GET http://localhost:3000/categorias
-GET http://localhost:3000/formas-pagamento
+### AUTENTICAÇÃO - fluxo básico
 
-### 2) Criar um gasto e depois atualizar/excluir
-POST http://localhost:3000/gastos
+### Registrar usuário (válido)
+POST {{baseUrl}}/auth/register
 Content-Type: application/json
 
 {
-  "nome": "Almoço",
-  "valor": 45.5,
-  "usuario": "João",
-  "categoriaId": 1,
-  "formaPagamentoId": 2
+  "nome": "Aluno Teste",
+  "email": "aluno@exemplo.com",
+  "senha": "SenhaSegura123"
 }
 
-### Após criação (pegar o `id` retornado), atualizar:
-PUT http://localhost:3000/gastos/{id}
+### Login (válido)
+POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "nome": "Almoço Executivo",
-  "valor": 55
+  "email": "aluno@exemplo.com",
+  "senha": "SenhaSegura123"
 }
 
-### E por fim excluir
-DELETE http://localhost:3000/gastos/{id}
+### Login (senha inválida)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
 
-### Observações
-# Use o REST Client do VSCode ou equivalente. Alguns endpoints retornam objetos relacionados (`usuario`, `categoria`, `formaPagamento`).
+{
+  "email": "aluno@exemplo.com",
+  "senha": "senhaErrada"
+}
+
+### Rota protegida (sem token)
+GET {{baseUrl}}/me
+
+### Rota protegida (com token)
+GET {{baseUrl}}/me
+Authorization: Bearer {{token}}

@@ -6,6 +6,7 @@ import gastoRoutes from "./routes/gastoRoutes.js";
 import usuarioRoutes from "./routes/usuarioRoutes.js";
 import categoriaRoutes from "./routes/categoriaRoutes.js";
 import formaPagamentoRoutes from "./routes/formaPagamentoRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import { requireJsonContentType } from "./middlewares/requireJsonContentType.js";
 
@@ -20,6 +21,7 @@ app.use(gastoRoutes);
 app.use(usuarioRoutes);
 app.use(categoriaRoutes);
 app.use(formaPagamentoRoutes);
+app.use(authRoutes);
 
 app.get("/", (_req, res) => {
   res.status(200).json({ status: "ok" });

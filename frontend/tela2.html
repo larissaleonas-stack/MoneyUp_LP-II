@@ -61,6 +61,12 @@
       </section>
     </main>
 
+    <script type="module">
+      import { getToken } from "./js/auth.mjs";
+      if (!getToken()) {
+        window.location.href = "login.html";
+      }
+    </script>
     <script type="module" src="./js/cadastro.mjs"></script>
   </body>
 </html>

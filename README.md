@@ -1,24 +1,29 @@
 # MoneyUp
 
-Sistema de controle financeiro desenvolvido para a disciplina de Banco de Dados II, utilizando Node.js, Express.js, Prisma ORM e SQLite.
+Sistema de controle financeiro desenvolvido para a disciplina de Liguagem de Programção II, utilizando Node.js, Express.js, TypeScript, Prisma ORM e SQLite. O projeto inclui autenticação de usuários, geração de token JWT e proteção de rotas.
 
 ## Tecnologias Utilizadas
 
 - Node.js
 - Express.js
+- TypeScript
 - Prisma ORM
 - SQLite
+- JWT (JSON Web Token)
+- bcrypt
 - HTML
 - CSS
 - JavaScript
 
 ## Estrutura do Projeto
 
-- **src/** → Controllers, Models, Routes, Middlewares e configuração do servidor.
-- **frontend/** → Interfaces HTML e scripts JavaScript.
-- **prisma/** → Schema, migrations e configuração do banco.
-- **docs/** → Documentação e diagrama ERD.
-- **requests.http** → Testes da API utilizando REST Client.
+- `src/` → controllers, models, routes, middlewares e servidor
+- `frontend/` → páginas HTML e scripts JS para interface do usuário
+- `prisma/` → schema do banco, migrations e seed
+- `docs/` → documentação e diagramas
+- `scripts/` → scripts auxiliares para testes e geração de documentação
+- `tests/` → resultados de testes automáticos
+- `requests.http` → testes manuais da API com REST Client
 
 ## Configuração do Projeto
 
@@ -28,31 +33,43 @@ Sistema de controle financeiro desenvolvido para a disciplina de Banco de Dados 
 npm install
 ```
 
-### Gerar Prisma Client
+### Configurar variáveis de ambiente
+
+Crie um arquivo `.env` na raiz com o conteúdo abaixo:
+
+```env
+DATABASE_URL="file:./moneyup.db"
+PORT=3000
+JWT_SECRET=sua_chave_secreta
+JWT_EXPIRES_IN=1h
+BCRYPT_SALT_ROUNDS=10
+```
+
+### Gerar cliente Prisma
 
 ```bash
 npx prisma generate
 ```
 
-### Criar banco de dados e aplicar migrations
+### Criar/aplicar banco
 
 ```bash
-npx prisma migrate dev --name init
+npx prisma db push
 ```
 
-### Popular banco com dados iniciais
+### Executar o projeto
 
 ```bash
-npm run seed
+npm run dev
 ```
 
-### Executar servidor
+Ou em modo normal:
 
 ```bash
 npm start
 ```
 
-Servidor disponível em:
+A API ficará disponível em:
 
 ```txt
 http://localhost:3000
@@ -60,114 +77,118 @@ http://localhost:3000
 
 ## Funcionalidades
 
-- Cadastro de gastos
-- Listagem de gastos
-- Edição de gastos
-- Remoção de gastos
-- Integração com banco SQLite através do Prisma ORM
-- Backend em TypeScript na pasta `src/`
+- Cadastro de usuários
+- Login com autenticação
+- Geração de token JWT
+- Proteção de rotas autenticadas
+- Cadastro, listagem, edição e exclusão de gastos
+- Associação do gasto com o usuário autenticado
+- Controle de autorização para edição/exclusão
+- Integração com banco SQLite via Prisma
+- Frontend simples com páginas de login e registro
+
+## Autenticação
+
+### Endpoints
+
+- `POST /auth/register` → cadastra um usuário
+- `POST /auth/login` → autentica e retorna token
+- `GET /me` → retorna dados do usuário autenticado
+
+### Como usar o token
+
+Depois do login, o backend retorna um JWT no corpo da resposta. Envie esse valor no header:
+
+```http
+Authorization: Bearer <token>
+```
+
+## Rotas principais
+
+### Usuários
+
+- `GET /usuarios`
+- `GET /me`
+
+### Gastos
+
+- `GET /gastos`
+- `POST /gastos`
+- `PUT /gastos/:id`
+- `DELETE /gastos/:id`
+
+### Categorias e formas de pagamento
+
+- `GET /categorias`
+- `GET /formas-pagamento`
+
+## Testes
+
+### Teste manual com REST Client
+
+Abra o arquivo `requests.http` e execute as requisições em sequência:
+
+1. Cadastro
+2. Login
+3. Uso do token em `/me`
+4. Criação de gasto
+
+### Script de autenticação automatizado
+
+```bash
+node scripts/test-auth-extended.mjs
+```
+
+Resultados salvos em:
+
+```txt
+tests/auth-results.txt
+```
+
+### Testes com Vitest
+
+```bash
+npm test
+```
+
+## Frontend
+
+As páginas do projeto estão em `frontend/`:
+
+- `index.html`
+- `login.html`
+- `cadastro.html`
+- `tela2.html`
+- `tela3.html`
+
+Os scripts estão em `frontend/js/`:
+
+- `auth.mjs` → login, logout e token
+- `cadastro.mjs` → cadastro de gastos
+- `lista.mjs` → listagem e exclusão
 
 ## Modelagem do Banco
 
-O diagrama ERD utilizado no projeto encontra-se em:
-
-```txt
-docs/erd.jpeg
-```
-
-O código-fonte Mermaid utilizado para gerar o diagrama encontra-se em:
+O diagrama ERD está em:
 
 ```txt
 docs/erd.mermaid
 ```
 
-## Autoras
+E a versão visual em:
+
+```txt
+docs/erd.jpeg
+```
+
+## Autores
 
 - Larissa Leona Sales
 - Joyce Vitória Camilo
 
-## Variáveis de ambiente
-
-Copie `.env.example` para `.env` e ajuste se necessário:
-
-```
-DATABASE_URL="file:./dev.db"
-PORT=3000
-NODE_ENV=development
-```
-
-## Scripts úteis
-
-- `npm run dev` — inicia em modo desenvolvimento com `tsx watch src/server.ts`
-- `npm start` — inicia com `tsx src/server.ts`
-- `npm run build` — compila TypeScript (`tsc`)
-- `npm run seed` — executa o seeder do Prisma
-- `npm test` — executa testes com Vitest
-
-## Migrations e seed
-
-Gerar e aplicar migrações locais (desenvolvimento):
-
-```bash
-npx prisma migrate dev --name init
-```
-
-Aplicar migrações em produção:
-
-```bash
-npx prisma migrate deploy
-```
-
-Para popular dados iniciais (seed):
-
-```bash
-npm run seed
-```
-
-## API (endpoints principais)
-
-Base URL: `http://localhost:3000`
-
-- `GET /gastos` — lista gastos (inclui `usuario`, `categoria`, `formaPagamento`)
-- `POST /gastos` — cria gasto. Body JSON: `{ nome, valor, usuario, categoriaId, formaPagamentoId }`
-- `PUT /gastos/:id` — atualiza nome/valor
-- `DELETE /gastos/:id` — remove gasto
-
-- `GET /usuarios` — lista usuários
-- `GET /categorias` — lista categorias
-- `GET /formas-pagamento` — lista formas de pagamento
-
-Os endpoints `GET /categorias` e `GET /formas-pagamento` são usados pelo formulário de cadastro em `frontend/tela2.html`.
-
-## Testes manuais com REST Client (VSCode)
-
-Abra o arquivo `requests.http` na raiz e execute as requests para testar as rotas rapidamente.
-
-## Frontend
-
-Páginas estáticas em `frontend/`:
-
-- `index.html` — home
-- `tela2.html` — formulário de cadastro (usa `frontend/js/cadastro.mjs`)
-- `tela3.html` — lista de gastos (usa `frontend/js/lista.mjs`)
-
-Você pode abrir os arquivos diretamente no navegador ou usar um servidor estático.
-
-Opções para servir o frontend:
-
-```bash
-cd frontend
-npx http-server -p 5000
-```
-
-Em seguida acesse:
-
-```txt
-http://localhost:5000/index.html
-```
-
 ## Observações
 
-- O backend atual está em `src/`; a pasta `backend/` legada foi removida.
-- A API retorna objetos relacionados (`usuario`, `categoria`, `formaPagamento`) em `GET /gastos`.
-- O `tsconfig.json` inclui os testes e validação com TypeScript.
+- O projeto foi evoluído para incluir autenticação de usuários e controle de acesso.
+- O token JWT é usado para proteger recursos sensíveis da aplicação.
+- O arquivo `requests.http` é a forma mais simples de testar a API manualmente.
+- O projeto também possui testes automatizados para validar fluxo de autenticação e autorização.

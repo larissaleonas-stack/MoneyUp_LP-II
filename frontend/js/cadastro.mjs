@@ -127,7 +127,7 @@ let isEdit = false;
 async function carregarParaEdicao(id) {
   try {
     showSpinner(true);
-    const res = await fetch("http://localhost:3000/gastos");
+    const res = await authFetch("http://localhost:3000/gastos");
     if (!res.ok) return;
     const gastos = await res.json();
     const gasto = gastos.find((g) => String(g.id) === String(id));
@@ -181,6 +181,8 @@ carregarOpcoes().then(() => {
   }
 });
 
+import { authFetch, getUser } from "./auth.mjs";
+
 botao.addEventListener("click", async () => {
   const nome = document.getElementById("nome").value.trim();
   const valor = Number(document.getElementById("valor").value);
@@ -210,7 +212,8 @@ botao.addEventListener("click", async () => {
       : "http://localhost:3000/gastos";
     const method = isEdit ? "PUT" : "POST";
 
-    const response = await fetch(url, {
+    // Use authenticated fetch so server associates gasto with logged user
+    const response = await authFetch(url, {
       method,
       headers: {
         "Content-Type": "application/json",
@@ -218,7 +221,6 @@ botao.addEventListener("click", async () => {
       body: JSON.stringify({
         nome,
         valor,
-        usuario,
         categoriaId,
         formaPagamentoId,
       }),

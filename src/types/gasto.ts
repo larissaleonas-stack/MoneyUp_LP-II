@@ -1,7 +1,8 @@
 export interface GastoCreateInput {
   nome: string;
   valor: number;
-  usuario: string;
+  usuario?: string;
+  usuarioId?: number;
   categoriaId: number;
   formaPagamentoId: number;
 }

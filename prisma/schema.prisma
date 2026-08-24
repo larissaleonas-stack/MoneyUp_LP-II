@@ -8,15 +8,17 @@ datasource db {
 }
 
 model Usuario {
-
   id Int @id @default(autoincrement())
 
   nome String
 
-  email String?
+  email String @unique
+
+  senhaHash String
+
+  criadoEm DateTime @default(now())
 
   gastos Gasto[]
-
 }
 
 model Categoria {

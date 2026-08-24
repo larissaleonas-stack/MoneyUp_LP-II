@@ -22,12 +22,32 @@
         <div class="nav-actions">
           <a class="button primary" href="tela2.html">Novo Gasto</a>
           <a class="button secondary" href="index.html">Voltar</a>
+          <div
+            id="userArea"
+            style="display: inline-block; margin-left: 12px"
+          ></div>
         </div>
 
         <div id="lista" class="list-items"></div>
       </section>
     </main>
 
+    <script type="module">
+      import { getToken, getUser, logout } from "./js/auth.mjs";
+      if (!getToken()) {
+        window.location.href = "login.html";
+      }
+      const userArea = document.getElementById("userArea");
+      const user = getUser();
+      if (user && user.nome) {
+        userArea.innerHTML = `Olá, ${user.nome} <button id="logoutBtn" class="button outline">Sair</button>`;
+        document
+          .getElementById("logoutBtn")
+          .addEventListener("click", () => logout());
+      } else {
+        userArea.innerHTML = `<a class="button" href="login.html">Entrar</a>`;
+      }
+    </script>
     <script type="module" src="./js/lista.mjs"></script>
   </body>
 </html>
