@@ -86,3 +86,92 @@ GET {{baseUrl}}/me
 ### Rota protegida (com token)
 GET {{baseUrl}}/me
 Authorization: Bearer {{token}}
+
+### B3.2 - cadastro válido: use um e-mail novo para cada execução
+# @name cadastroB32
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "nome": "Aluno B3.2",
+  "email": "aluno.{{$guid}}@example.com",
+  "senha": "SenhaSegura123"
+}
+
+### B3.2 - login no usuário recém-cadastrado
+# @name loginB32
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{cadastroB32.response.body.email}}",
+  "senha": "SenhaSegura123"
+}
+
+### B3.2 - body inválido: formato de e-mail (esperado: 400 com issues)
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "nome": "Teste B3.2",
+  "email": "email-sem-arroba",
+  "senha": "SenhaSegura123"
+}
+
+### B3.2 - body inválido: valor numérico negativo (esperado: 400)
+POST {{baseUrl}}/gastos
+Content-Type: application/json
+Authorization: Bearer {{loginB32.response.body.token}}
+
+{
+  "nome": "Gasto inválido",
+  "valor": -10,
+  "categoriaId": 1,
+  "formaPagamentoId": 1
+}
+
+### B3.2 - parâmetro de rota inválido (esperado: 400 com path params.id)
+PUT {{baseUrl}}/gastos/nao-e-um-id
+Content-Type: application/json
+Authorization: Bearer {{loginB32.response.body.token}}
+
+{
+  "valor": 25
+}
+
+### B3.2 - ID válido sem recurso correspondente (esperado: 404)
+PUT {{baseUrl}}/gastos/2000000000
+Content-Type: application/json
+Authorization: Bearer {{loginB32.response.body.token}}
+
+{
+  "valor": 25
+}
+
+### B3.2 - query inválida (esperado: 400 com path query.page)
+GET {{baseUrl}}/gastos?page=0&limit=10
+
+### B3.2 - query válida (página 1, até 10 resultados)
+GET {{baseUrl}}/gastos?page=1&limit=10
+
+### B3.2 - gasto válido (troque os IDs por IDs existentes no banco)
+POST {{baseUrl}}/gastos
+Content-Type: application/json
+Authorization: Bearer {{loginB32.response.body.token}}
+
+{
+  "nome": "Gasto de demonstração",
+  "valor": 25.5,
+  "categoriaId": 1,
+  "formaPagamentoId": 1
+}
+
+### B3.2 - repetir cadastro acima com o mesmo e-mail (esperado: 409)
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "nome": "Aluno B3.2",
+  "email": "{{cadastroB32.response.body.email}}",
+  "senha": "SenhaSegura123"
+}

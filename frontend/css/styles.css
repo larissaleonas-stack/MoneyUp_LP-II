@@ -156,6 +156,19 @@ body {
   gap: 8px;
 }
 
+.feedback {
+  min-height: 22px;
+  font-size: 0.95rem;
+}
+
+.feedback.error {
+  color: #b42318;
+}
+
+.feedback.success {
+  color: #18794e;
+}
+
 .field span {
   font-size: 0.95rem;
   color: var(--muted);

@@ -1,10 +1,12 @@
 import type { Request, Response, NextFunction } from "express";
+import { ZodError } from "zod";
 import { HttpError } from "../errors/HttpError.js";
 
 type ErrorResponse = {
   error: string;
   code?: string;
   details?: unknown;
+  field?: string;
 };
 
 export function errorHandler(
@@ -13,9 +15,23 @@ export function errorHandler(
   res: Response,
   _next: NextFunction,
 ): void {
+  if (error instanceof ZodError) {
+    res.status(400).json({
+      error: error.issues[0]?.message ?? "Dados inválidos",
+      issues: error.issues.map((issue) => ({
+        path: issue.path,
+        message: issue.message,
+      })),
+    });
+    return;
+  }
+
   // HttpError thrown by application code
   if (error instanceof HttpError) {
-    const payload: ErrorResponse = { error: error.message };
+    const payload: ErrorResponse = {
+      error: error.message,
+      ...(error.field ? { field: error.field } : {}),
+    };
     res.status(error.status).json(payload);
     return;
   }

@@ -3,11 +3,16 @@ import type {
   GastoCreateInput,
   GastoUpdateInput,
   GastoResponse,
+  AuthenticatedGastoCreateInput,
 } from "../types/gasto.js";
 
 const gastoModel = {
-  async listar(): Promise<GastoResponse[]> {
+  async listar(pagination?: {
+    skip: number;
+    take: number;
+  }): Promise<GastoResponse[]> {
     return await prisma.gasto.findMany({
+      ...(pagination ?? {}),
       include: {
         usuario: { select: { id: true, nome: true, email: true } },
         categoria: true,
@@ -27,9 +32,7 @@ const gastoModel = {
     });
   },
 
-  async criar(data: GastoCreateInput): Promise<GastoResponse> {
-    if (!data.usuarioId) throw new Error("Authenticated user is required");
-
+  async criar(data: AuthenticatedGastoCreateInput): Promise<GastoResponse> {
     return await prisma.gasto.create({
       data: {
         nome: data.nome,

@@ -13,13 +13,23 @@
         <form id="loginForm">
           <div class="field">
             <label for="email">E-mail</label>
-            <input id="email" type="email" required />
+            <input
+              id="email"
+              type="email"
+              required
+              pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
+            />
           </div>
           <div class="field">
             <label for="senha">Senha</label>
-            <input id="senha" type="password" required />
+            <input id="senha" type="password" required minlength="8" />
           </div>
-          <div id="error" class="error"></div>
+          <div
+            id="feedback"
+            class="feedback"
+            role="status"
+            aria-live="polite"
+          ></div>
           <div class="button-group">
             <button class="button primary">Entrar</button>
             <a href="cadastro.html" class="button outline">Criar conta</a>
@@ -32,15 +42,29 @@
       const form = document.getElementById("loginForm");
       const email = document.getElementById("email");
       const senha = document.getElementById("senha");
-      const error = document.getElementById("error");
+      const feedback = document.getElementById("feedback");
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
-        error.textContent = "";
+        email.setCustomValidity("");
+        senha.setCustomValidity("");
+        feedback.textContent = "";
+        feedback.className = "feedback";
         try {
           await login(email.value, senha.value);
           window.location.href = "tela2.html";
         } catch (err) {
-          error.textContent = err?.message || JSON.stringify(err);
+          const message =
+            err?.error ||
+            err?.message ||
+            "Não foi possível entrar. Tente novamente.";
+          const field = err?.field || err?.issues?.[0]?.path?.at(-1);
+          const input = field ? document.getElementById(field) : null;
+          if (input) {
+            input.setCustomValidity(err?.issues?.[0]?.message || message);
+            input.reportValidity();
+          }
+          feedback.textContent = message;
+          feedback.className = "feedback error";
         }
       });
     </script>

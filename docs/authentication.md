@@ -40,44 +40,37 @@ const usuarioModel = {
 };
 ```
 
-**3. Cadastro e Autenticação (Controller)**
+**3. Cadastro, autenticação e validação (Controller e rotas)**
 
-- Arquivo: src/controllers/authController.ts
+- Arquivos: `src/controllers/authController.ts`, `src/routes/authRoutes.ts`, `src/schemas/authSchemas.ts`
+- As rotas aplicam `validate(schema)` antes de chamar os controllers. Zod valida nome, e-mail e senha; o controller não repete verificações manuais de formato.
+- Após validar e verificar duplicidade, o controller cria o usuário e chama o serviço isolado de e-mail.
 
 ```ts
-export const register = async (req: Request, res: Response) => {
-  const { nome, email, senha } = req.body;
-  if (!nome || !email || !senha) throw new HttpError(400, "Dados incompletos");
-  if (typeof senha !== "string" || senha.length < 8)
-    throw new HttpError(400, "Senha muito curta");
-
-  const existing = await usuarioModel.findByEmail(email);
-  if (existing) throw new HttpError(409, "E-mail já cadastrado");
-
-  const senhaHash = await bcrypt.hash(senha, SALT_ROUNDS);
-  const user = await usuarioModel.create({ nome, email, senhaHash });
-  res.status(201).json({ id: user.id, nome: user.nome, email: user.email });
-};
-
-export const login = async (req: Request, res: Response) => {
-  const { email, senha } = req.body;
-  if (!email || !senha) throw new HttpError(400, "Dados incompletos");
-
-  const user = await usuarioModel.findByEmail(email);
-  if (!user) throw new HttpError(401, "Usuário ou senha inválidos");
-
-  const match = await bcrypt.compare(senha, user.senhaHash);
-  if (!match) throw new HttpError(401, "Usuário ou senha inválidos");
-
-  const token = jwt.sign({ sub: user.id, email: user.email }, JWT_SECRET, {
-    expiresIn: JWT_EXPIRES_IN,
-  });
-  res.json({
-    token,
-    user: { id: user.id, nome: user.nome, email: user.email },
-  });
-};
+router.post(
+  "/auth/register",
+  validate(registerRequestSchema),
+  asyncHandler(register),
+);
 ```
+
+**3.1 Schemas e middleware genérico**
+
+- Arquivos: `src/schemas/authSchemas.ts`, `src/schemas/gastoSchemas.ts`, `src/middlewares/validate.ts`
+- Os schemas cobrem body de cadastro/login/gastos, parâmetro inteiro positivo `id`, e query de paginação `page`/`limit`.
+- Valores numéricos de gastos devem ser positivos; `limit` tem máximo de 100. O ID é inteiro porque a modelagem Prisma usa autoincremento, não UUID.
+
+**3.2 Erros de validação**
+
+- Arquivo: `src/middlewares/errorHandler.ts`
+- Zod retorna `400` com `issues`, cada uma contendo `path` e `message`. E-mail duplicado retorna `409`; gasto válido que não existe retorna `404`.
+
+**3.3 E-mail de boas-vindas**
+
+- Arquivo: `src/services/emailService.ts`
+- `EMAIL_MODE=ethereal` cria uma conta temporária para desenvolvimento, envia HTML e texto puro e imprime no terminal a URL de prévia retornada por `nodemailer.getTestMessageUrl(info)`.
+- A prévia Ethereal foi aberta durante a demonstração e mostrou o e-mail de boas-vindas do MoneyUp.
+- Falhas do serviço são registradas no log sem derrubar o cadastro; e-mail duplicado é recusado antes da chamada ao serviço.
 
 **4. Middleware de proteção (JWT)**
 
@@ -146,13 +139,21 @@ Observação: a criação, atualização e exclusão de gastos (`POST/PUT/DELETE
 
 ```
 DATABASE_URL="file:./moneyup.db"
+PORT=3000
 JWT_SECRET=uma-chave-secreta-muito-forte
 JWT_EXPIRES_IN=1h
 BCRYPT_SALT_ROUNDS=10
-PORT=3000
+EMAIL_MODE=ethereal
+SMTP_HOST=
+SMTP_PORT=587
+SMTP_USER=
+SMTP_PASS=
+SMTP_FROM=MoneyUp <no-reply@example.com>
 ```
 
-**8. Como executar (passo a passo)**n
+Em desenvolvimento, `EMAIL_MODE=ethereal` usa uma conta temporária Nodemailer/Ethereal e imprime no terminal a URL de prévia da mensagem. Para envio real, configure `EMAIL_MODE=smtp` e credenciais apenas no `.env` local. Em testes, o envio é desabilitado.
+
+**8. Como executar (passo a passo)**
 
 ```bash
 npm install
@@ -168,4 +169,8 @@ npm run dev
 
 ---
 
-Se quiser, eu posso também gerar um arquivo `.docx` contendo este conteúdo — deseja que eu gere e o adicione ao repositório?
+## B3.2 - Validação e envio de e-mail
+
+O estado atual da atividade está detalhado em `VALIDACAO_ATIVIDADE.md`. Schemas Zod para cadastro, login e gastos estão em `src/schemas/`; `src/middlewares/validate.ts` valida body, params e query antes do controller. O middleware de erros retorna `400` com `issues` contendo `path` e `message`.
+
+O e-mail de boas-vindas é enviado por `src/services/emailService.ts` depois da criação do usuário. Falhas de SMTP são registradas e não mudam o `201` do cadastro. O arquivo `requests.http` inclui exemplos B3.2 de body, parâmetro e query inválidos, paginação válida, cadastro e duplicidade.

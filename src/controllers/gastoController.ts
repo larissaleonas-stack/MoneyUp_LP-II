@@ -6,38 +6,30 @@ import type { AuthRequest } from "../middlewares/authMiddleware.js";
 
 const gastoController = {
   async listar(_req: Request, res: Response): Promise<void> {
-    const dados = await gastoModel.listar();
+    const query = (res.locals.validated?.query ?? {}) as {
+      page?: number;
+      limit?: number;
+    };
+    const options =
+      query.page !== undefined || query.limit !== undefined
+        ? {
+            skip: ((query.page ?? 1) - 1) * (query.limit ?? 20),
+            take: query.limit ?? 20,
+          }
+        : undefined;
+    const dados = await gastoModel.listar(options);
     res.status(200).json(dados);
   },
 
   async criar(req: AuthRequest, res: Response): Promise<void> {
-    const data = req.body as GastoCreateInput;
+    const data = req.body as Omit<GastoCreateInput, "usuario" | "usuarioId">;
 
-    // if authenticated, associate gasto with authenticated user
-    if (req.user && req.user.id) {
-      (data as any).usuarioId = req.user.id;
-    }
-
-    if (
-      !data.nome ||
-      data.valor === undefined ||
-      data.categoriaId === undefined ||
-      data.formaPagamentoId === undefined ||
-      (!data.usuario && !(data as any).usuarioId)
-    ) {
-      throw new HttpError(400, "Missing required gasto fields");
-    }
-
-    const gasto = await gastoModel.criar(data);
+    const gasto = await gastoModel.criar({ ...data, usuarioId: req.user!.id });
     res.status(201).json(gasto);
   },
 
   async atualizar(req: AuthRequest, res: Response): Promise<void> {
-    const id = Number(req.params.id);
-
-    if (Number.isNaN(id)) {
-      throw new HttpError(400, "Invalid gasto id");
-    }
+    const id = res.locals.validated.params.id as number;
 
     const data = req.body as GastoUpdateInput;
 
@@ -52,11 +44,7 @@ const gastoController = {
   },
 
   async deletar(req: AuthRequest, res: Response): Promise<void> {
-    const id = Number(req.params.id);
-
-    if (Number.isNaN(id)) {
-      throw new HttpError(400, "Invalid gasto id");
-    }
+    const id = res.locals.validated.params.id as number;
 
     const existente = await gastoModel.findById(id);
     if (!existente) throw new HttpError(404, "Gasto não encontrado");

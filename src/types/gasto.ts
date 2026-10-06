@@ -7,6 +7,11 @@ export interface GastoCreateInput {
   formaPagamentoId: number;
 }
 
+export type AuthenticatedGastoCreateInput = Omit<
+  GastoCreateInput,
+  "usuario" | "usuarioId"
+> & { usuarioId: number };
+
 export interface GastoUpdateInput {
   nome?: string;
   valor?: number;

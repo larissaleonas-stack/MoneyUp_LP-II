@@ -1,10 +1,15 @@
 import request from "supertest";
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import fs from "fs";
 import { execSync } from "child_process";
 
 // Use test database and apply migrations before importing app
 process.env.DATABASE_URL = "file:./test.db";
+process.env.EMAIL_MODE = "smtp";
+process.env.SMTP_HOST = "127.0.0.1";
+process.env.SMTP_PORT = "1";
+process.env.SMTP_USER = "test-user";
+process.env.SMTP_PASS = "test-password";
 try {
   if (fs.existsSync("prisma/test.db")) fs.unlinkSync("prisma/test.db");
 } catch (e) {
@@ -31,16 +36,26 @@ let categoriaId: number;
 let formaPagamentoId: number;
 let createdId: number | null = null;
 let authorization = "";
+let registeredEmail = "";
 
 beforeAll(async () => {
-  const email = `teste-${Date.now()}@example.com`;
-  const register = await request(app)
-    .post("/auth/register")
-    .send({ nome: "Teste User", email, senha: "SenhaSegura123" });
+  registeredEmail = `teste-${Date.now()}@example.com`;
+  const emailLog = vi.spyOn(console, "error").mockImplementation(() => {});
+  const register = await request(app).post("/auth/register").send({
+    nome: "Teste User",
+    email: registeredEmail,
+    senha: "SenhaSegura123",
+  });
   expect(register.status).toBe(201);
+  expect(emailLog).toHaveBeenCalledWith(
+    "Erro ao enviar e-mail de boas-vindas:",
+    expect.anything(),
+  );
+  emailLog.mockRestore();
+
   const login = await request(app)
     .post("/auth/login")
-    .send({ email, senha: "SenhaSegura123" });
+    .send({ email: registeredEmail, senha: "SenhaSegura123" });
   expect(login.status).toBe(200);
   authorization = `Bearer ${login.body.token}`;
 
@@ -70,6 +85,50 @@ afterAll(async () => {
 });
 
 describe("Gastos API (integração)", () => {
+  it("mantém cadastro em 201 e registra erro se SMTP estiver indisponível", async () => {
+    const emailLog = vi.spyOn(console, "error").mockImplementation(() => {});
+    const res = await request(app)
+      .post("/auth/register")
+      .send({
+        nome: "Teste SMTP",
+        email: `smtp-${Date.now()}@example.com`,
+        senha: "SenhaSegura123",
+      });
+
+    expect(res.status).toBe(201);
+    expect(emailLog).toHaveBeenCalledWith(
+      "Erro ao enviar e-mail de boas-vindas:",
+      expect.anything(),
+    );
+    emailLog.mockRestore();
+  });
+
+  it("rejeita cadastro duplicado sem tentar enviar outro e-mail", async () => {
+    const emailLog = vi.spyOn(console, "error").mockImplementation(() => {});
+    const res = await request(app).post("/auth/register").send({
+      nome: "Teste User",
+      email: registeredEmail,
+      senha: "SenhaSegura123",
+    });
+
+    expect(res.status).toBe(409);
+    expect(res.body.field).toBe("email");
+    expect(emailLog).not.toHaveBeenCalled();
+    emailLog.mockRestore();
+  });
+
+  it("retorna 404 ao atualizar gasto inexistente", async () => {
+    const latestGasto = await prisma.gasto.aggregate({ _max: { id: true } });
+    const missingId = (latestGasto._max.id ?? 0) + 1;
+    const res = await request(app)
+      .put(`/gastos/${missingId}`)
+      .set("Authorization", authorization)
+      .send({ valor: 25 });
+
+    expect(res.status).toBe(404);
+    expect(res.body.error).toMatch(/não encontrado/i);
+  });
+
   it("GET /gastos deve retornar 200 e um array", async () => {
     const res = await request(app).get("/gastos");
     expect(res.status).toBe(200);

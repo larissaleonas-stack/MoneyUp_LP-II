@@ -17,13 +17,27 @@
           </div>
           <div class="field">
             <label for="email">E-mail</label>
-            <input id="email" type="email" required />
+            <input
+              id="email"
+              type="email"
+              required
+              pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
+            />
           </div>
           <div class="field">
             <label for="senha">Senha</label>
-            <input id="senha" type="password" required />
+            <input id="senha" type="password" required minlength="8" />
           </div>
-          <div id="error" class="error"></div>
+          <div class="field">
+            <label for="confirmarSenha">Confirmar senha</label>
+            <input id="confirmarSenha" type="password" required minlength="8" />
+          </div>
+          <div
+            id="feedback"
+            class="feedback"
+            role="status"
+            aria-live="polite"
+          ></div>
           <div class="button-group">
             <button class="button primary">Cadastrar</button>
             <a href="login.html" class="button outline">Já tenho conta</a>
@@ -37,15 +51,61 @@
       const nome = document.getElementById("nome");
       const email = document.getElementById("email");
       const senha = document.getElementById("senha");
-      const error = document.getElementById("error");
+      const confirmarSenha = document.getElementById("confirmarSenha");
+      const feedback = document.getElementById("feedback");
+
+      function validatePasswordConfirmation() {
+        confirmarSenha.setCustomValidity(
+          confirmarSenha.value === senha.value ? "" : "As senhas não coincidem",
+        );
+      }
+
+      function clearFieldErrors() {
+        [nome, email, senha, confirmarSenha].forEach((input) =>
+          input.setCustomValidity(""),
+        );
+      }
+
+      function showApiError(err) {
+        const message =
+          err?.error || err?.message || "Não foi possível concluir o cadastro.";
+        const issues = Array.isArray(err?.issues) ? err.issues : [];
+        const field = err?.field || issues[0]?.path?.at(-1);
+        const input = field ? document.getElementById(field) : null;
+        if (input) {
+          input.setCustomValidity(
+            issues.find((issue) => issue.path?.at(-1) === field)?.message ||
+              message,
+          );
+          input.reportValidity();
+        }
+        feedback.textContent = message;
+        feedback.className = "feedback error";
+      }
+
+      senha.addEventListener("input", validatePasswordConfirmation);
+      confirmarSenha.addEventListener("input", validatePasswordConfirmation);
+      [nome, email, senha, confirmarSenha].forEach((input) => {
+        input.addEventListener("input", () => input.setCustomValidity(""));
+      });
+
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
-        error.textContent = "";
+        clearFieldErrors();
+        validatePasswordConfirmation();
+        if (!form.reportValidity()) return;
+        feedback.textContent = "";
+        feedback.className = "feedback";
         try {
           await register(nome.value, email.value, senha.value);
-          window.location.href = "login.html";
+          feedback.textContent =
+            "Cadastro realizado! Redirecionando para o login...";
+          feedback.className = "feedback success";
+          window.setTimeout(() => {
+            window.location.href = "login.html";
+          }, 1500);
         } catch (err) {
-          error.textContent = err?.message || JSON.stringify(err);
+          showApiError(err);
         }
       });
     </script>

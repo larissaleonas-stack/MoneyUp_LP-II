@@ -43,7 +43,12 @@ PORT=3000
 JWT_SECRET=sua_chave_secreta
 JWT_EXPIRES_IN=1h
 BCRYPT_SALT_ROUNDS=10
+EMAIL_MODE=ethereal
 ```
+
+Em desenvolvimento, `EMAIL_MODE=ethereal` cria uma conta de teste e imprime no terminal a URL de prévia da mensagem. Isso requer acesso à internet e certificados TLS confiáveis. Para envio real, configure `EMAIL_MODE=smtp` e as variáveis `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` e `SMTP_FROM`. Em testes automatizados, o envio fica desabilitado.
+
+Não coloque credenciais reais no `.env.example` nem no controle de versão. O arquivo `.env` está ignorado pelo Git.
 
 ### Gerar cliente Prisma
 
@@ -77,15 +82,17 @@ http://localhost:3000
 
 ## Funcionalidades
 
-- Cadastro de usuários
-- Login com autenticação
-- Geração de token JWT
+- Cadastro de usuários com validação de nome, e-mail e senha
+- Login com autenticação e geração de token JWT
 - Proteção de rotas autenticadas
 - Cadastro, listagem, edição e exclusão de gastos
 - Associação do gasto com o usuário autenticado
 - Controle de autorização para edição/exclusão
 - Integração com banco SQLite via Prisma
 - Frontend simples com páginas de login e registro
+- Envio de e-mail de boas-vindas após cadastro
+- Validação no backend e no frontend para evitar entradas inválidas
+- Schemas Zod aplicados por middleware genérico em body, params e query
 
 ## Autenticação
 
@@ -123,6 +130,10 @@ Authorization: Bearer <token>
 - `GET /formas-pagamento`
 
 ## Testes
+
+### Atividade B3.2
+
+O relatório com os cinco requisitos, os arquivos envolvidos e as instruções de demonstração está em [VALIDACAO_ATIVIDADE.md](VALIDACAO_ATIVIDADE.md). Os exemplos manuais correspondentes estão identificados no arquivo `requests.http`.
 
 ### Teste manual com REST Client
 
